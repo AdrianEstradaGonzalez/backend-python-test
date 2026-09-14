@@ -2,8 +2,7 @@
 
 Separamos a propósito el modelo *externo* (lo que exige el contrato de la
 prueba) del modelo *interno* (lo que el pipeline necesita saber para trabajar:
-intentos, errores, marcas de tiempo...). Así podemos enriquecer el estado
-interno sin romper el contrato público.
+intentos, errores, marcas de tiempo...). 
 """
 
 from dataclasses import dataclass, field
@@ -52,11 +51,7 @@ class CreatedOut(BaseModel):
 
 
 class AcceptedOut(BaseModel):
-    """Respuesta de POST /v1/requests/{id}/process.
-
-    Devolvemos también el estado para que el cliente sepa si la solicitud
-    entró en la cola o fue rechazada por backpressure, sin tener que hacer
-    un GET adicional.
+    """Respuesta de POST /v1/requests/{id}/process -> {"id": "...", "status": "...", "accepted": true/false}.
     """
 
     id: str
@@ -75,8 +70,6 @@ class StatusOut(BaseModel):
 class NotificationRecord:
     """Estado interno de una solicitud. Nunca sale tal cual por la API.
 
-    Usamos dataclass y no Pydantic porque este objeto se lee y escribe miles
-    de veces por segundo y no necesita validación: ya viene validado.
     """
 
     id: str
@@ -85,8 +78,6 @@ class NotificationRecord:
     attempts: int = 0
     provider_id: Optional[str] = None
     last_error: Optional[str] = None
-    # Reloj monótono: inmune a cambios de hora del sistema, que es lo que
-    # queremos para medir antigüedad y decidir purgas.
     created_at: float = field(default=0.0)
     updated_at: float = field(default=0.0)
 
